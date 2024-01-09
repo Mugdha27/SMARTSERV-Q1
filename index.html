@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON Data Display</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="fetchAndDisplay()">Fetch Data</button>
+
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Price</th>
+          <th>Popularity</th>
+          <th>Subcategory</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      function fetchAndDisplay() {
+        // Fetching JSON data from the API
+        const apiURL = "https://s3.amazonaws.com/open-to-cors/assignment.json";
+
+        fetch(apiURL)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch data. Status code: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Check if data.products is an object
+            if (!data.products || typeof data.products !== "object") {
+              throw new Error(
+                `Invalid data format. Expected 'products' property as an object. Received: ${JSON.stringify(
+                  data
+                )}`
+              );
+            }
+
+            // Convert object to array
+            const dataArray = Object.values(data.products);
+
+            // Check if array is not empty
+            if (dataArray.length === 0) {
+              throw new Error("No data found.");
+            }
+
+            // Sorting the data by descending popularity
+            const sortedData = dataArray.sort(
+              (a, b) => b.popularity - a.popularity
+            );
+
+            // Displaying the sorted data in the table
+            const tableBody = document.querySelector("#productTable tbody");
+            tableBody.innerHTML = ""; // Clear existing rows
+
+            sortedData.forEach((product) => {
+              const row = tableBody.insertRow();
+              row.insertCell(0).textContent = product.title;
+              row.insertCell(1).textContent = product.price;
+              row.insertCell(2).textContent = product.popularity;
+              row.insertCell(3).textContent = product.subcategory;
+            });
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    </script>
+  </body>
+</html>
